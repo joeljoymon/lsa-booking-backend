@@ -4,6 +4,13 @@ A production-oriented backend prototype for booking sessions between a
 **Parent** and a **Learning Session Assistant (LSA)**, with payment-driven
 booking state transitions.
 
+**Joel Joymon**
+Email: joel.joymon2004@gmail.com
+Phone: +91-9867014906
+GitHub: [github.com/joeljoymon](https://github.com/joeljoymon)
+
+---
+
 ## Entities
 
 | Model     | Purpose                                                             |
