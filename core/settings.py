@@ -129,3 +129,31 @@ MAILERS = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Payment gateway (mock) configuration — see bookings/services.py.
+# httpbin.org's /post endpoint just echoes back whatever it's sent,
+# making it a convenient stand-in "mock gateway" for this prototype.
+PAYMENT_GATEWAY_URL = 'https://httpbin.org/post'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[{levelname}] {asctime} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'bookings': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

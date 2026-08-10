@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404
@@ -12,6 +14,12 @@ from .serializers import (
     LSASerializer,
     PaymentWebhookSerializer,
 )
+from .services import PaymentGatewayError, initiate_payment
+
+# Flat per-session fee. A real system would price this from the LSA's
+# rate card; kept as a simple constant here to keep the booking payload
+# unchanged from what was already agreed with the brief.
+DEFAULT_SESSION_FEE = Decimal("500.00")
 
 
 class AvailableLSAListView(generics.ListAPIView):
@@ -109,6 +117,27 @@ class BookingCreateView(generics.CreateAPIView):
                     status=status.HTTP_409_CONFLICT,
                 )
             self.perform_create(serializer)
+            booking = serializer.instance
+
+            # Create the Payment row up front (PENDING) and kick off the
+            # mock gateway call. This mirrors a real flow: booking placed
+            # -> payment intent created with the gateway -> gateway later
+            # confirms/fails asynchronously via the webhook.
+            payment = Payment.objects.create(
+                booking=booking, amount=DEFAULT_SESSION_FEE
+            )
+
+        # Gateway call happens *after* the transaction commits, so a slow
+        # or failing third-party call never holds the booking's DB lock.
+        # Failure here is intentionally non-fatal to the booking itself —
+        # see services.initiate_payment's docstring for the reasoning.
+        try:
+            initiate_payment(payment)
+        except PaymentGatewayError:
+            # Already logged inside initiate_payment. The booking and its
+            # PENDING payment still exist; the flow can be retried or
+            # resolved later via the webhook.
+            pass
 
         headers = self.get_success_headers(serializer.data)
         return Response(

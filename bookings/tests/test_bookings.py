@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
-from bookings.models import Booking
+from bookings.models import Booking, Payment
 
 pytestmark = pytest.mark.django_db
 
@@ -26,8 +26,13 @@ def test_booking_creation_success(api_client, parent, lsa):
 
     assert response.status_code == 201
     assert Booking.objects.count() == 1
-    assert Booking.objects.first().status == Booking.Status.PENDING
+    booking = Booking.objects.first()
+    assert booking.status == Booking.Status.PENDING
 
+    assert Payment.objects.count() == 1
+    payment = Payment.objects.first()
+    assert payment.booking_id == booking.id
+    assert payment.status == Payment.Status.PENDING
 
 def test_overlapping_booking_is_rejected(api_client, confirmed_booking):
     # Same LSA, overlapping window with the existing confirmed_booking fixture.

@@ -7,6 +7,24 @@ from rest_framework.test import APIClient
 from bookings.models import LSA, Booking, Parent, Payment
 
 
+@pytest.fixture(autouse=True)
+def mock_gateway_call(monkeypatch):
+    """
+    Prevent every test from making a real HTTP call to the mock payment
+    gateway (httpbin.org) — tests should be fast, deterministic, and not
+    require network access.
+
+    This patches the *name* imported into bookings.views, so tests that
+    want to exercise the real request/exception-handling logic can still
+    do so by testing bookings.services.initiate_payment directly with
+    requests.post mocked at that layer instead (see
+    test_payment_gateway.py) — this fixture doesn't affect that module.
+    """
+    monkeypatch.setattr(
+        "bookings.views.initiate_payment", lambda payment: {"mocked": True}
+    )
+
+
 @pytest.fixture
 def api_client():
     return APIClient()
