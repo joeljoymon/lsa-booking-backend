@@ -20,7 +20,7 @@ def test_available_lsas_excludes_busy_lsa(api_client, parent, lsa, other_lsa):
         status=Booking.Status.CONFIRMED,
     )
 
-    url = reverse("lsa-available")
+    url = reverse("lsa-search")
     response = api_client.get(
         url, {"start": start.isoformat(), "end": end.isoformat()}
     )
@@ -54,7 +54,7 @@ def test_available_lsas_constant_query_count(
             status=Booking.Status.CONFIRMED,
         )
 
-    url = reverse("lsa-available")
+    url = reverse("lsa-search")
     # 1 query: main LSA select, with the "busy LSA ids" resolved as a
     # correlated subquery inside the same SQL statement (not a separate
     # round-trip). 1 query: prefetch_related fetch of related bookings

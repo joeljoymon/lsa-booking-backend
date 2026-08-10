@@ -16,7 +16,7 @@ from .serializers import (
 
 class AvailableLSAListView(generics.ListAPIView):
     """
-    GET /api/lsas/available/?subject=Math&start=<iso>&end=<iso>
+    GET /api/v1/lsas/search/?skills=Math&start=<iso>&end=<iso>
 
     Returns LSAs that are active and have no CONFIRMED/PENDING booking
     overlapping the given [start, end) window.
@@ -37,7 +37,7 @@ class AvailableLSAListView(generics.ListAPIView):
 
     def get_queryset(self):
         params = self.request.query_params
-        subject = params.get("subject")
+        subject = params.get("skills") or params.get("subject")
         start = parse_datetime(params.get("start")) if params.get("start") else None
         end = parse_datetime(params.get("end")) if params.get("end") else None
 
